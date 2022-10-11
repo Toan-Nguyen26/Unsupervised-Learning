@@ -19,7 +19,15 @@ def readDataLabels():
 
 def to_categorical(y):
     #Convert the nominal y values tocategorical
-    return y
+    cats = set(y)
+    if len(cats) < 3:
+        return [cat == cats[0] for cat in cats]
+        
+    dummies = {cat : [0 for i in range(len(y))]}
+    for i,cat in enumerate(arr):
+        dummies[cat][i] = 1
+        
+    return list(dummies.values())
 
 def train_test_split(data,labels,n=0.8):
     #split data in training and testing sets
