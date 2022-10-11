@@ -12,8 +12,25 @@ import math
 
 mode = 'train'      # train/test... Optional mode to avoid training incase you want to load saved model and test only.
 
+class node:
+    def __init__(self):
+        self.value = 0
+    
+    def reset(self):
+        self.value = 0
+        
+class edge:
+    def __init__(self,in,out,weight):
+        self.in = in 
+        self.out = out
+        self.weight = weight
+        
+    def apply(self):
+        self.out.value = self.in.value*self.weight
+
 class ANN:
     def __init__(self, num_input_features, num_hidden_units, num_outputs, hidden_unit_activation, output_activation, loss_function):
+        #hidden = [5,6,7]
         self.num_input_features = num_input_features
         self.num_hidden_units = num_hidden_units
         self.num_outputs = num_outputs
@@ -21,6 +38,16 @@ class ANN:
         self.hidden_unit_activation = hidden_unit_activation
         self.output_activation = output_activation
         self.loss_function = loss_function
+        
+        self.inputNodes = [node() for i in range(num_input_features)]
+        self.hiddenNodes = [[node() for i in range(hidden)] for hidden in num_hidden_units]
+        self.outputNodes = [node() for i in range(num_outputs)]
+        
+        # the hard part
+        # input to hidden
+        # hidden to hidden if exists
+        # hidden to out
+        self.edges = edge()
 
 
     def initialize_weights(self):   # TODO
@@ -30,6 +57,10 @@ class ANN:
         return
 
     def forward(self):      # TODO
+        self.inputNodes.set(inputs)#psuedocode
+        for edge in self.edges:
+            edge.apply()
+        return [output.value for output in self.outputNodes]
         # x = input matrix
         # hidden activation y = f(z), where z = w.x + b
         # output = g(z'), where z' =  w'.y + b'
@@ -57,13 +88,16 @@ class ANN:
 
 
 def main(argv):
-    ann = ANN(64,16,1,SigmoidActivation,SigmoidActivation,MSELoss)
+    ann = ANN(64,16,10,ReLuActivation,SigmoidActivation,#Sigmoid or Softmax
+              MSELoss)#CrossEntropy or MSE
 
     # Load dataset
-    images,X,Y = readDataLabels()      # dataset[0] = X, dataset[1] = y
-    visualizeObservation(images[0])
+    images,X,Y = readDataLabels()   # dataset[0] = X, dataset[1] = y
+    print(set(Y))
+    visualizeObservation(images[5])
 
     # Split data into train and test split. call function in data.py
+    X,Y = train_test_split(X,Y)
 
     # call ann->train()... Once trained, try to store the model to avoid re-training everytime
     if mode == 'train':
@@ -73,7 +107,8 @@ def main(argv):
         raise NotImplementedError
 
     # Call ann->test().. to get accuracy in test set and print it.
-
+    preds = ann.test(testData)
+    preds = [pred.index(max(pred)) for pred in preds]
 
 if __name__ == "__main__":
     main(sys.argv)
