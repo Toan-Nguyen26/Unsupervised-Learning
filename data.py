@@ -37,8 +37,12 @@ def train_test_split(data,labels,n=0.8):
     for i in range(n):
         idx = round(random.random()*(len(index)-1))
         kept.append(index.pop(idx))
-    return [data[i] for i in kept],[labels[i] for i in kept]
+    
+    X,Y = data[kept],labels[kept]
+    xTest,yTest = data[index],labels[index]
+    return X,Y,xTest,yTest
 
-def normalize_data(data): #TODO
-    # normalize/standardize the data
-    return
+def normalize_data(X): 
+    l2 = np.atleast_1d(np.linalg.norm(X))
+    l2[l2 == 0] = 1
+    return X / np.expand_dims(l2, -1)

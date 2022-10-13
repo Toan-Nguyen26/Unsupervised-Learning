@@ -1,6 +1,7 @@
 import os, sys
 import numpy as np
 import math
+import random
 
 #from data import readDataLabels, normalize_data, train_test_split, to_categorical, visualizeObservation
 #from utils import accuracy_score
@@ -12,6 +13,11 @@ import math
 
 mode = 'train'      # train/test... Optional mode to avoid training incase you want to load saved model and test only.
 
+def interval(num1,num2): #interval(0,1)
+    n = min(num1,num2)
+    x = max(num1,num2)
+    return n + random.random()*(x-n)
+
 class node:
     def __init__(self):
         self.value = 0
@@ -20,18 +26,25 @@ class node:
         self.value = 0
         
 class edge:
-    def __init__(self,in,out,weight):
-        self.in = in 
-        self.out = out
+    def __init__(self,input,output,weight=None,l=None,k=None):
+        self.input = input
+        self.output = output
         self.weight = weight
+        self.l = l
+        self.k = k
         
     def apply(self):
-        self.out.value = self.in.value*self.weight
+        if self.input == None:
+            self.output.value += self.weight
+            return
+        self.output.value += self.input.value*self.weight
 
 class ANN:
     def __init__(self, num_input_features, num_hidden_units, num_outputs, hidden_unit_activation, output_activation, loss_function):
         #hidden = [5,6,7]
         self.num_input_features = num_input_features
+        if type(num_hidden_units) is int:
+            num_hidden_units = [num_hidden_units]
         self.num_hidden_units = num_hidden_units
         self.num_outputs = num_outputs
 
@@ -43,21 +56,36 @@ class ANN:
         self.hiddenNodes = [[node() for i in range(hidden)] for hidden in num_hidden_units]
         self.outputNodes = [node() for i in range(num_outputs)]
         
-        # the hard part
-        # input to hidden
-        # hidden to hidden if exists
-        # hidden to out
-        self.edges = edge()
+        # define edges
+        self.edges = []
+        for hidden in self.hiddenNodes[0]:
+            self.edges.append(edge(None,hidden,k=self.num_hidden_units[0],l=self.num_hidden_units[0]))
+            for input in self.inputNodes:
+                self.edges.append(edge(input,hidden,k=self.num_input_features,l=self.num_hidden_units[0]))
+        for i in range(len(self.hiddenNodes)-1):
+            for hidden2 in range(self.hiddenNodes[i+1]):
+                self.edges.append(edge,None,hidden2,k=self.num_hidden_units[i+1],l=self.num_hidden_units[i+1])
+                for hidden1 in range(self.hiddenNodes[i]):
+                    self.edges.append(edge(hidden1,hidden2,k=self.num_hidden_units[i],l=self.num_hidden_units[i+1]))
+        for output in self.outputNodes:
+            self.edges.append(edge(None,output,k=self.num_outputs,l=self.num_outputs))
+            for hidden in self.hiddenNodes[-1]:
+                self.edges.append(edge(hidden,output,k=self.hiddenNodes[-1],l=self.num_outputs))
 
 
-    def initialize_weights(self):   # TODO
-        # Create and Initialize the weight matrices
-        # Never initialize to all zeros. Not Cool!!!
-        # Try something like uniform distribution. Do minimal research and use a cool initialization scheme.
-        return
+    def initialize_weights(self,edgeWts=None):
+        if edgeWts is None:
+            #Using He initialization
+            for edge in self.edges:
+                edge.weight = interval(self.l,self.k)*np.sqrt(2/self.k)
+            return
+        # Load from arr
+        for i,edge in enumerate(self.edges):
+            edge.weight = edgeWts[i]
 
-    def forward(self):      # TODO
-        self.inputNodes.set(inputs)#psuedocode
+    def forward(self,inputs):
+        for i,inp in enumerate(inputs):
+            self.inputNodes[i].value = inp
         for edge in self.edges:
             edge.apply()
         return [output.value for output in self.outputNodes]
@@ -67,7 +95,6 @@ class ANN:
         # Trick here is not to think in terms of one neuron at a time
         # Rather think in terms of matrices where each 'element' represents a neuron
         # and a layer operation is carried out as a matrix operation corresponding to all neurons of the layer
-        pass
 
     def backward(self):     # TODO
         pass
@@ -76,38 +103,56 @@ class ANN:
         # Take the optimization step.
         return
 
-    def train(self, dataset, learning_rate=0.01, num_epochs=100):
+    def train(self, X, Y, learning_rate=0.01, num_epochs=100):
         for epoch in range(num_epochs):
             pass
 
-    def test(self, test_dataset):
-        accuracy = 0    # Test accuracy
+    def test(self, test_x, test_y):
         # Get predictions from test dataset
+        predictions = []
+        for observation in test_x:
+            predictions.append(self.forward(observation))
         # Calculate the prediction accuracy, see utils.py
-        return accuracy
+        return accuracy_score(test_y,predictions)
+    
+    def __str__(self):
+        string = ''
+        string += str(num_input_features) + ',' + str(num_hidden_units) + ',' + str(num_outputs) + '\n'
+        for edge in self.edges:
+            string += str(edge.weight) + ','
+        return string
 
 
 def main(argv):
-    ann = ANN(64,16,10,ReLuActivation,SigmoidActivation,#Sigmoid or Softmax
-              MSELoss)#CrossEntropy or MSE
 
     # Load dataset
     images,X,Y = readDataLabels()   # dataset[0] = X, dataset[1] = y
     print(set(Y))
     visualizeObservation(images[5])
+    X = normalize_data(X)
 
     # Split data into train and test split. call function in data.py
-    X,Y = train_test_split(X,Y)
+    X,Y,testX,testY = train_test_split(X,Y)
 
     # call ann->train()... Once trained, try to store the model to avoid re-training everytime
     if mode == 'train':
-        pass        # Call ann training code here
+        ann = ANN(64,16,10,SigmoidActivation,SoftmaxActivation,
+          MSELoss)#CrossEntropy or MSE
+        ann.initialize_weights()
+        ann.train(X,Y)
     else:
         # Call loading of trained model here, if using this mode (Not required, provided for convenience)
-        raise NotImplementedError
+        with file as open('model.txt'):
+            model = file.readlines()
+        structure = model[0]
+        weights = model[1]
+        ann = ANN(structure[0],structure[1],structure[2],SigmoidActivation,SoftmaxActivation,
+          MSELoss)#CrossEntropy or MSE
+        ann.initialize_weights(f[1])
+        ann.train(X,Y)
 
     # Call ann->test().. to get accuracy in test set and print it.
-    preds = ann.test(testData)
+    preds = ann.test(testX,testY)
     preds = [pred.index(max(pred)) for pred in preds]
 
 if __name__ == "__main__":

@@ -37,6 +37,9 @@ class CrossEntropyLoss:     # TODO: Make this work!!!
         pass
 
     def __call__(self, y_pred, y_gt):
+        self.current_prediction = y_pred
+        self.current_gt = y_gt
+        
         # TODO: Calculate Loss Function
         loss = None
         return loss
@@ -44,31 +47,41 @@ class CrossEntropyLoss:     # TODO: Make this work!!!
     def grad(self):
         # TODO: Calculate Gradients for back propagation
         gradient = None
+        
+        # We are creating and emptying buffers to emulate computation graphs in
+        # Modern ML frameworks such as Tensorflow and Pytorch. It is not required.
+        self.current_prediction = None
+        self.current_gt = None
+        
         return gradient
 
 
 class SoftmaxActivation:    # TODO: Make this work!!!
-    def __init__(self):
+    def init(self):
+        self.y = None
         pass
 
-    def __call__(self, y):
-        # TODO: Calculate Activation Function
-        pass
+    def call(self, y):
+        exp_y = np.exp(y)
+        softmax_y = np.round(exp_y/y)
+        return softmax_y
 
-    def __grad__(self):
+    def grad(self):
         # TODO: Calculate Gradients.. Remember this is calculated w.r.t. input to the function -> dy/dz
         pass
 
 
 class SigmoidActivation:    # TODO: Make this work!!!
-    def __init__(self):
+    def init(self):
+        self.y = None
         pass
 
-    def __call__(self, y):
+    def call(self, y):
         # TODO: Calculate Activation Function
-        pass
+        self.y = y
+        return 1/(1 + np.exp(-y))
 
-    def __grad__(self):
+    def grad(self):
         # TODO: Calculate Gradients.. Remember this is calculated w.r.t. input to the function -> dy/dz
         pass
 
