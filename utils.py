@@ -17,7 +17,7 @@ class MSELoss:      # For Reference
         loss = 0.5 * np.power((y_gt - y_pred), 2)
         return loss
 
-    def grad(self):
+    def __grad__(self):
         # Derived by calculating dL/dy_pred
         gradient = -1 * (self.current_gt - self.current_prediction)
 
@@ -44,7 +44,7 @@ class CrossEntropyLoss:     # TODO: Make this work!!!
         loss = None
         return loss
 
-    def grad(self):
+    def __grad__(self):
         # TODO: Calculate Gradients for back propagation
         gradient = None
         
@@ -57,33 +57,40 @@ class CrossEntropyLoss:     # TODO: Make this work!!!
 
 
 class SoftmaxActivation:    # TODO: Make this work!!!
-    def init(self):
+    def __init__(self):
         self.y = None
         pass
 
-    def call(self, y):
+    def __call__(self, y):
+        self.y = y
         exp_y = np.exp(y)
-        softmax_y = np.round(exp_y/y)
-        return softmax_y
+        return exp_y / np.sums(exp_y)
 
-    def grad(self):
-        # TODO: Calculate Gradients.. Remember this is calculated w.r.t. input to the function -> dy/dz
-        pass
+
+
+    def __grad__(self):
+        jacobian_m = np.diag(self.y)
+
+        for i in range(len(jacobian_m)):
+            for j in range(len(jacobian_m)):
+            if i == j:
+                jacobian_m[i][j] = self.y[i] * (1-self.y[i])
+            else: 
+                jacobian_m[i][j] = -self.y[i]*self.y[j]
+        return jacobian_m
 
 
 class SigmoidActivation:    # TODO: Make this work!!!
-    def init(self):
+    def __init__(self):
         self.y = None
         pass
 
-    def call(self, y):
-        # TODO: Calculate Activation Function
+    def __call__(self, y):
         self.y = y
         return 1/(1 + np.exp(-y))
 
-    def grad(self):
-        # TODO: Calculate Gradients.. Remember this is calculated w.r.t. input to the function -> dy/dz
-        pass
+    def __grad__(self):
+        return 1/(1 + np.exp(-y)) - (1 - 1/(1 + np.exp(-y)))
 
 
 class ReLUActivation:
