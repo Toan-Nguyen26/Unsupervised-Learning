@@ -40,9 +40,10 @@ class CrossEntropyLoss:     # TODO: Make this work!!!
         self.current_prediction = y_pred
         self.current_gt = y_gt
         
-        # TODO: Calculate Loss Function
-        loss = None
-        return loss
+        if(y_gt == 1)
+            return -np.log(y_pred); 
+        else
+            return -np.log(1 - y_pred);
 
     def __grad__(self):
         # TODO: Calculate Gradients for back propagation
