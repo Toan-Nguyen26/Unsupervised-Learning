@@ -41,20 +41,26 @@ class CrossEntropyLoss:     # TODO: Make this work!!!
         self.current_gt = y_gt
         
         if(y_gt == 1)
-            return -np.log(y_pred); 
+            return -np.log(y_pred)
         else
-            return -np.log(1 - y_pred);
+            return -np.log(1 - y_pred)
 
-    def __grad__(self):
+    # x is the output from the fully connected layer
+    # y is the labels
+    def __grad__(self, x, y):
         # TODO: Calculate Gradients for back propagation
-        gradient = None
+        gradient = y.shape[0];
+        p = SoftmaxActivation(x)
         
         # We are creating and emptying buffers to emulate computation graphs in
         # Modern ML frameworks such as Tensorflow and Pytorch. It is not required.
-        self.current_prediction = None
-        self.current_gt = None
+        #self.current_prediction = None
+        #self.current_gt = None
         
-        return gradient
+        probability = -np.log(p[range(gradient),y])
+        loss = np.sum(probability)/gradient
+
+        return loss
 
 
 class SoftmaxActivation:    # TODO: Make this work!!!
