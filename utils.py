@@ -35,6 +35,7 @@ class CrossEntropyLoss:
         # Buffers to store intermediate results.
         self.current_prediction = None
         self.current_gt = None
+        pass
 
     def __call__(self, y_pred, y_gt):
         self.current_prediction = y_pred
@@ -42,6 +43,10 @@ class CrossEntropyLoss:
         
         loss = [-np.log(y_pred[i]) if y_gt[i] == 1 else -np.log(1-y_pred[i]) for i in range(len(y_pred))]
         return loss
+        # Prof crossEntropy
+        # y_pred = np.clip(y_pred, 1e -15 , 1 * 1e - 15)
+        # loss = - y_gt *np.log(y_pred) - (1 - y_gt) * np.log(1 - y_pred)
+        # return loss
 
     # x is the output from the fully connected layer
     # y is the labels
@@ -55,6 +60,10 @@ class CrossEntropyLoss:
         self.current_gt = None
         
         return grad
+        # Prof crossEntropy
+        # y_pred = np.clip(y_pred, 1e -15 , 1 * 1e - 15)
+        # gradient = -(y_gt / y_pred ) + (1 - y_gt) / (1 - y_pred)
+        # return gradient
 
 
 class SoftmaxActivation:
