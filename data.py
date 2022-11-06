@@ -43,6 +43,6 @@ def train_test_split(data,labels,n=0.8):
     return X,Y,xTest,yTest
 
 def normalize_data(X): 
-    l2 = np.atleast_1d(np.linalg.norm(X))
+    l2 = np.atleast_1d(np.linalg.norm(X, ord=2, axis=1))
     l2[l2 == 0] = 1
-    return X / np.expand_dims(l2, -1)
+    return X / np.expand_dims(l2, axis = 1)
